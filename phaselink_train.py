@@ -69,6 +69,8 @@ class Model():
     def train(self, train_loader, val_loader, n_epochs, enable_amp=False):
         from torch.autograd import Variable
         import time
+        if enable_amp:
+            import apex.amp as amp
 
         #pos_weight = torch.ones([1]).to(device)*24.264966334432359
         #loss = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight)

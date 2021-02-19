@@ -1,4 +1,17 @@
-#!/home/zross/bin/python
+#!/usr/bin/python
+#-----------------------------------------------------------------------------------------------------------------------------------------
+
+# Script Description:
+# Script to train a stacked bidirectional GRU model to link phases together. This code takes the synthetic training dataset produced using p
+# haselink_dataset and trains a deep neural network to associate individual phases into events.
+
+# Usage:
+# python phaselink_train.py config_json
+# For example: python phaselink_train.py params.json
+
+#-----------------------------------------------------------------------------------------------------------------------------------------
+
+# Import neccessary modules:
 import numpy as np
 import os
 import torch
@@ -8,7 +21,10 @@ import json
 import pickle
 from torch.utils.data.sampler import SubsetRandomSampler
 
+#----------------------------------------------- Define main functions -----------------------------------------------
 class MyDataset(torch.utils.data.Dataset):
+    """Function to preprocess a dataset into the format required by 
+    pytorch for training."""
     def __init__(self, data, target, device, transform=None):
         self.data = torch.from_numpy(data).float().to(device)
         self.target = torch.from_numpy(target).short().to(device)
@@ -27,6 +43,7 @@ class MyDataset(torch.utils.data.Dataset):
         return len(self.data)
 
 class StackedGRU(torch.nn.Module):
+    """Class defining the stacked bidirectional GRU network."""
     def __init__(self):
         super(StackedGRU, self).__init__()
         self.hidden_size = 128
@@ -61,12 +78,15 @@ class StackedGRU(torch.nn.Module):
         return out
 
 class Model():
+    """Class to create and train a bidirectional GRU model."""
     def __init__(self, network, optimizer, model_path):
         self.network = network
         self.optimizer = optimizer
         self.model_path = model_path
 
     def train(self, train_loader, val_loader, n_epochs, enable_amp=False):
+        """Function to perform the training of a bidirectional GRU model.
+        Loads and trains the data."""
         from torch.autograd import Variable
         import time
         if enable_amp:
@@ -179,9 +199,7 @@ class Model():
 
                     y_true = labels
 
-                    print("y_true", y_true)
-                    print("y_pred", y_pred)
-
+                    # Get precision-recall for current validation epoch:
                     prec_0 += (
                         y_pred[y_pred<0.5] == y_true[y_pred<0.5]
                     ).sum().item()
@@ -194,7 +212,6 @@ class Model():
                     reca_1 += (
                         y_pred[y_true>0.5] == y_true[y_true>0.5]
                     ).sum().item()
-
                     prec_n_0 += torch.numel(y_pred[y_pred<0.5])
                     prec_n_1 += torch.numel(y_pred[y_pred>0.5])
                     reca_n_0 += torch.numel(y_true[y_true<0.5])
@@ -210,11 +227,10 @@ class Model():
                         reca_n_0 = 1
                     if reca_n_1 == 0:
                         reca_n_1 = 1
-
-            print("Precision (Class 0): {:4.3f}%".format(prec_0/prec_n_0))
-            print("Recall (Class 0): {:4.3f}%".format(reca_0/reca_n_0))
-            print("Precision (Class 1): {:4.3f}%".format(prec_1/prec_n_1))
-            print("Recall (Class 1): {:4.3f}%".format(reca_1/reca_n_1))
+            print("Precision (Class 0): {:4.3f}".format(prec_0/prec_n_0))
+            print("Recall (Class 0): {:4.3f}".format(reca_0/reca_n_0))
+            print("Precision (Class 1): {:4.3f}".format(prec_1/prec_n_1))
+            print("Recall (Class 1): {:4.3f}".format(reca_1/reca_n_1))
 
             #y_pred_all = np.concatenate(y_pred_all)
             #y_true_all = np.concatenate(y_true_all)
@@ -258,6 +274,10 @@ class Model():
             val_outputs = self.network(inputs)
 
 
+#----------------------------------------------- End: Define main functions -----------------------------------------------
+
+
+#----------------------------------------------- Run script -----------------------------------------------
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: python phaselink_train.py config_json")
@@ -330,3 +350,5 @@ if __name__ == "__main__":
     model = Model(stackedgru, optimizer, model_path='./phaselink_model')
     print("Begin training process.")
     model.train(train_loader, val_loader, n_epochs, enable_amp=enable_amp)
+
+    print("Finished.")

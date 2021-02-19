@@ -2,7 +2,7 @@
 #-----------------------------------------------------------------------------------------------------------------------------------------
 
 # Script Description:
-# Script to build a training dataset for PhaseNet from a station file and 1D travel time table. The travel time tables are in the format 
+# Script to build a training dataset for PhaseLink from a station file and 1D travel time table. The travel time tables are in the format 
 # that is output by the GrowClust code. A decoupled version of this raytracer is provided in raytracer.tar.gz, which has a python wrapper 
 # to the F90 routine.
 
@@ -285,7 +285,7 @@ def get_network_centroid(params):
     return lat0, lon0
 
 def build_station_map(params, lat0, lon0, phase_idx):
-    """Function to create a station map, based upon 
+    """Function to create a station and phase map, based upon 
     the parameters specified in the params json file."""
     stations = {}
     sncl_map = {}

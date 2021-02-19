@@ -40,7 +40,7 @@ def output_thread(out_q, params):
         else:
             X.append(res[0])
             Y.append(res[1])
-        if none_count == n_threads:
+        if none_count == params['n_threads']:
             break
     X = np.array(X)
     Y = np.array(Y)
@@ -60,9 +60,13 @@ def output_thread(out_q, params):
     return
 
 def generate_phases(in_q, out_q, x_min, x_max, y_min, y_max, \
-                    sncl_idx, stla, stlo, phasemap, tt_p, tt_s):
+                    sncl_idx, stla, stlo, phasemap, tt_p, tt_s, params):
     """Function to generate random synthetic phase arrivals, given travel-time 
     tables for P- and S- phases."""
+    # Get any additional parameters from params:
+    max_picks = params['n_max_picks']
+    t_max = params['t_win']
+    n_threads = params['n_threads']
 
     np.random.seed()
 
@@ -280,7 +284,7 @@ def get_network_centroid(params):
     lon0 = (np.max(stlo) + np.min(stlo))*0.5
     return lat0, lon0
 
-def build_station_map(params):
+def build_station_map(params, lat0, lon0, phase_idx):
     """Function to create a station map, based upon 
     the parameters specified in the params json file."""
     stations = {}
@@ -335,7 +339,7 @@ if __name__ == "__main__":
     phase_idx = {'P': 0, 'S': 1}
     lat0, lon0 = get_network_centroid(params)
     stlo, stla, phasemap, sncl_idx, stations, sncl_map = \
-        build_station_map(params)
+        build_station_map(params, lat0, lon0, phase_idx)
     x_min = np.min(stlo)
     x_max = np.max(stlo)
     y_min = np.min(stla)
@@ -380,7 +384,7 @@ if __name__ == "__main__":
         print("Starting thread %d" % i)
         p = mp.Process(target=generate_phases, \
             args=(in_q, out_q, x_min, x_max, y_min, y_max, \
-                  sncl_idx, stla, stlo, phasemap, pTT, sTT))
+                  sncl_idx, stla, stlo, phasemap, pTT, sTT, params))
         p.start()
         procs.append(p)
 

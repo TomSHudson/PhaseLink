@@ -6,14 +6,10 @@ import torch.utils.data
 import sys
 import json
 import pickle
-
-n_epochs = 100
-enable_amp = True
-if enable_amp:
-    import apex.amp as amp
+from torch.utils.data.sampler import SubsetRandomSampler
 
 class MyDataset(torch.utils.data.Dataset):
-    def __init__(self, data, target, transform=None):
+    def __init__(self, data, target, device, transform=None):
         self.data = torch.from_numpy(data).float().to(device)
         self.target = torch.from_numpy(target).short().to(device)
         self.transform = transform
@@ -70,7 +66,7 @@ class Model():
         self.optimizer = optimizer
         self.model_path = model_path
 
-    def train(self, train_loader, val_loader, n_epochs):
+    def train(self, train_loader, val_loader, n_epochs, enable_amp=False):
         from torch.autograd import Variable
         import time
 
@@ -246,37 +242,46 @@ class Model():
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("phaselink_train config_json")
+        print("Usage: python phaselink_train.py config_json")
+        print("E.g. python phaselink_train.py params.json")
         sys.exit()
-
     with open(sys.argv[1], "r") as f:
         params = json.load(f)
 
+    # Get device (cpu vs gpu) specified:
     device = torch.device(params["device"])
+    if params["device"][0:4] == "cuda":
+        torch.cuda.empty_cache()
+        enable_amp = True
+    else:
+        enable_amp = False
+    if enable_amp:
+        import apex.amp as amp
 
-    torch.cuda.empty_cache()
+    # Get training info from param file:
+    n_epochs = params["n_epochs"] #100
 
+    # Load in training dataset:
     X = np.load(params["training_dset_X"])
     Y = np.load(params["training_dset_Y"])
-    print(X.shape, Y.shape)
+    print("Training dataset info:")
+    print("Shape of X:", X.shape, "Shape of Y", Y.shape)
+    dataset = MyDataset(X, Y, device)
 
-    #print(np.where(Y==1)[0].size, "1 labels")
-    #print(np.where(Y==0)[0].size, "0 labels")
-
-    dataset = MyDataset(X, Y)
-
+    # Get dataset info:
     n_samples = len(dataset)
     indices = list(range(n_samples))
 
+    # Set size of training and validation subset:
     n_test = int(0.1*X.shape[0])
-
     validation_idx = np.random.choice(indices, size=n_test, replace=False)
     train_idx = list(set(indices) - set(validation_idx))
 
-    from torch.utils.data.sampler import SubsetRandomSampler
+    # Specify samplers:
     train_sampler = SubsetRandomSampler(train_idx)
     validation_sampler = SubsetRandomSampler(validation_idx)
 
+    # Load training data:
     train_loader = torch.utils.data.DataLoader(
         dataset,
         batch_size=256,
@@ -307,4 +312,4 @@ if __name__ == "__main__":
     model = Model(stackedgru, optimizer, \
         model_path='./phaselink_model/')
     print("Begin training process.")
-    model.train(train_loader, val_loader, n_epochs)
+    model.train(train_loader, val_loader, n_epochs, enable_amp=enable_amp)

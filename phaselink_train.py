@@ -109,7 +109,7 @@ class Model():
 
                 if enable_amp:
                     loss_ = loss(outputs, labels.float())
-                    with amp.scale_loss(loss_, optimizer) as loss_value:
+                    with amp.scale_loss(loss_, self.optimizer) as loss_value:
                         loss_value.backward()
                 else:
                     loss_value = loss(outputs, labels.float())
@@ -311,7 +311,6 @@ if __name__ == "__main__":
     else:
         optimizer = torch.optim.Adam(stackedgru.parameters())
 
-    model = Model(stackedgru, optimizer, \
-        model_path='./phaselink_model/')
+    model = Model(stackedgru, optimizer, model_path='./phaselink_model/')
     print("Begin training process.")
     model.train(train_loader, val_loader, n_epochs, enable_amp=enable_amp)

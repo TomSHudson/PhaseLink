@@ -10,3 +10,4 @@ __pycache__
 __pycache__/*
 example/.ipynb_checkpoints
 example/.ipynb_checkpoints/*
+example/phaselink_model/*

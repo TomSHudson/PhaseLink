@@ -19,6 +19,9 @@ import torch.utils.data
 import sys
 import json
 import pickle
+import glob
+import gc 
+import matplotlib.pyplot as plt 
 from torch.utils.data.sampler import SubsetRandomSampler
 
 #----------------------------------------------- Define main functions -----------------------------------------------
@@ -274,6 +277,52 @@ class Model():
             val_outputs = self.network(inputs)
 
 
+def find_best_model(model_path="phaselink_model"):
+    """Function to find best model.
+    Note: Currently uses a very basic selection method."""
+    # Plot model training and validation loss to select best model:
+
+    # Write the models loss function values to file:
+    models_fnames = list(glob.glob(os.path.join(model_path, "model_???_*.pt")))
+    models_fnames.sort()
+    val_losses = []
+    f_out = open(os.path.join(model_path, 'val_losses.txt'), 'w')
+    for model_fname in models_fnames:
+        model_curr = torch.load(model_fname)
+        val_losses.append(model_curr['loss'])
+        f_out.write(' '.join((model_fname, str(model_curr['loss']), '\n')))
+        del(model_curr)
+        gc.collect()
+    f_out.close()
+    val_losses = np.array(val_losses)
+    print("Written losses to file: ", os.path.join(model_path, 'val_losses.txt'))
+
+    # And select approximate best model (approx corner of loss curve):
+    approx_corner_idx = np.argwhere(val_losses < np.average(val_losses))[0][0]
+    print("Model to use:", models_fnames[approx_corner_idx])
+
+    # And plot:
+    plt.figure()
+    plt.plot(np.arange(len(val_losses)), val_losses)
+    plt.hlines(val_losses[approx_corner_idx], 0, len(val_losses), color='r', ls="--")
+    plt.ylabel("Val loss")
+    plt.xlabel("Epoch")
+    plt.show()
+
+    # And convert model to use to universally usable format (GPU or CPU):
+    model = StackedGRU().cuda(device)
+    checkpoint = torch.load(models_fnames[approx_corner_idx], map_location=device)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    torch.save(model, os.path.join(model_path, 'model_to_use.gpu.pt'), _use_new_zipfile_serialization=False)
+    new_device = "cpu"
+    model = model.to(new_device)
+    torch.save(model, os.path.join(model_path, 'model_to_use.cpu.pt'), _use_new_zipfile_serialization=False)
+    del model
+    gc.collect()
+
+    print("Found best model and written out to", model_path, "for GPU and CPU.")
+
+
 #----------------------------------------------- End: Define main functions -----------------------------------------------
 
 
@@ -350,5 +399,8 @@ if __name__ == "__main__":
     model = Model(stackedgru, optimizer, model_path='./phaselink_model')
     print("Begin training process.")
     model.train(train_loader, val_loader, n_epochs, enable_amp=enable_amp)
+
+    # And select and assign best model:
+    find_best_model(model_path="phaselink_model")
 
     print("Finished.")

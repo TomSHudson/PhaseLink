@@ -200,6 +200,17 @@ class Model():
                     reca_n_0 += torch.numel(y_true[y_true<0.5])
                     reca_n_1 += torch.numel(y_true[y_true>0.5])
 
+                    # Check if any are zero, and if so, set to 1 sample, simply so doesn't crash:
+                    # (Note: Just effects printing output)
+                    if prec_n_0 == 0:
+                        prec_n_0 = 1
+                    if prec_n_1 == 0:
+                        prec_n_1 = 1
+                    if reca_n_0 == 0:
+                        reca_n_0 = 1
+                    if reca_n_1 == 0:
+                        reca_n_1 = 1
+
             print("Precision (Class 0): {:4.3f}%".format(prec_0/prec_n_0))
             print("Recall (Class 0): {:4.3f}%".format(reca_0/reca_n_0))
             print("Precision (Class 1): {:4.3f}%".format(prec_1/prec_n_1))

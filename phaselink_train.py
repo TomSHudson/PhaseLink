@@ -229,6 +229,8 @@ class Model():
                     total_val_loss,
                     100*total_val_acc))
 
+            # Save model:
+            os.makedirs(self.model_path, exist_ok=True)
             torch.save({
                 'epoch': epoch,
                 'model_state_dict': self.network.state_dict(),
@@ -325,6 +327,6 @@ if __name__ == "__main__":
     else:
         optimizer = torch.optim.Adam(stackedgru.parameters())
 
-    model = Model(stackedgru, optimizer, model_path='./phaselink_model/')
+    model = Model(stackedgru, optimizer, model_path='./phaselink_model')
     print("Begin training process.")
     model.train(train_loader, val_loader, n_epochs, enable_amp=enable_amp)

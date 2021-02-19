@@ -177,9 +177,10 @@ class Model():
                     #y_pred_all.append(pred.cpu().numpy().flatten())
                     #y_true_all.append(labels.cpu().numpy().flatten())
 
-                    print(labels)
-
                     y_true = labels
+
+                    print("y_true", y_true)
+                    print("y_pred", y_pred)
 
                     prec_0 += (
                         y_pred[y_pred<0.5] == y_true[y_pred<0.5]

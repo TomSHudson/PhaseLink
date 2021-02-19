@@ -177,6 +177,8 @@ class Model():
                     #y_pred_all.append(pred.cpu().numpy().flatten())
                     #y_true_all.append(labels.cpu().numpy().flatten())
 
+                    print(labels)
+
                     y_true = labels
 
                     prec_0 += (

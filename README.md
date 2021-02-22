@@ -15,9 +15,52 @@ There are four scripts that should be used in the following order:
 
 More details about these codes and input file formats will be added over time. All of the scripts take a json filename as a command line argument. See the example file params.json.
 
-### Notes on the parameter file (params.json)
+### Notes on the parameter file (params.json):
 
-Here are the details on some of the key parameters in the parameter file (params.json):
+ - *t_win* - Length of window (in seconds) to generate synthetic training events within. (float)
+ - *n_max_picks* - Number of picks in training set. (int)
+ - *n_epochs* - Number of training epochs for training synthetic model. (int)
+ - *batch_size* - The size of each batch for training. (int)
+ - *n_min_nucl* - The minimum number of phase picks to nucleate as a cluster. (int)
+ - *n_min_merge* - Minimum number of picks to merge as an event. (int)
+ - *n_min_det* - Minimum number of events required to make a detection. (int)
+ - *avg_eve_sep* - The average event separataion time for the training dataset, in seconds. (float)
+ - *outfile*: *sjfz_det_linked.nlloc*,
+ - *outpkl*: *sjfz_det_linked.pkl*,
+ - *device*: *cpu*,
+ - *model_file*: *example/phaselink_model/model_to_use.cpu.pt*,
+ - *station_file*: *station_list.txt*,
+ - *station_map_file*: *station_map.pkl*,
+ - *sncl_map_file*: *sncl_map.pkl*,
+ - *gpd_file*: *anza_gpd_J1-10_rem.output*,
+ - *pr_min*: 0.50,
+ - *trig_dur_min*: 0.00,
+ - *nlloc_loc_path*: *loc/cahuilla*,
+ - *wf_path*: *wf*,
+ - *plot_unassociated*: false,
+ - *max_t_resid*: 999.0,
+ - *plot_seismicity*: true,
+ - *lat_min*: 31.0,
+ - *training_dset_X*: *shimane_train_X.npy*,
+ - *training_dset_Y*: *shimane_train_Y.npy*,
+ - *lat_max*: 37.0,
+ - *n_train_samp*: 10000,
+ - *lon_min*: -121.0,
+ - *lon_max*: -115,
+ - *fault_file*: */home/zross/src/Qt_flt_v2-0latlonNAD27.MIF*,
+ - *n_min_radius*: 8,
+ - *trav_time_p*: *tt.pg*,
+ - *trav_time_s*: *tt.sg*,
+ - *datum*: 0.0,
+ - *n_fake*: 0,
+ - *max_event_depth*: 25.0,
+ - *min_hypo_dist*: 10.0,
+ - *max_hypo_dist*: 100.0,
+ - *max_pick_error*: 0.50,
+ - *n_threads*: 8,
+ - *catalog_file_post*: *anza_test.xml*,
+ - *back_project*: false,
+ - *stop_read_early*: false
 
 
 Contact Zachary Ross (Caltech) with any questions.

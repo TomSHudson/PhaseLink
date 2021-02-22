@@ -1,10 +1,21 @@
-#! /home/zross/bin/python
+#!/usr/bin/python
+#-----------------------------------------------------------------------------------------------------------------------------------------
 
 # PhaseLink: Earthquake phase association with deep learning
 # Author: Zachary E. Ross
 # Seismological Laboratory
 # California Institute of Technology
 
+# Script Description:
+# Script to evaluate and run the trained PhaseLink model (trained on synthetic data) to associate individual picks with events.
+
+# Usage:
+# python phaselink_eval.py config_json
+# For example: python phaselink_dataset.py params.json
+
+#-----------------------------------------------------------------------------------------------------------------------------------------
+
+# Import neccessary modules:
 import sys
 import numpy as np
 import pickle
@@ -13,7 +24,9 @@ import torch
 import torch.utils.data
 import pylab as plt
 from obspy import UTCDateTime
-from geopy.distance import geodesic
+
+
+#----------------------------------------------- Define main functions -----------------------------------------------
 
 # ! Make sure model has sigmoid(out) !
 
@@ -262,7 +275,9 @@ def build_tt_grid(params):
             print(n_stations)
             for i in range(NX):
                 for j in range(NY):
-                    dist = geodesic((y[i], x[j]), (lat, lon)).km
+                    print(y[i], x[j], lat, lon)
+                    sys.exit()
+                    ### dist = geodesic((y[i], x[j]), (lat, lon)).km
                     for k in range(NZ):
                         tt_p[n_stations, j, i, k] = pTT.interp(dist, z[k])
                         tt_s[n_stations, j, i, k] = sTT.interp(dist, z[k])
@@ -297,19 +312,19 @@ def build_idx_maps(labels, new_clust, station_index_map):
     indices = np.array(indices, dtype=np.int32)
     return phases, indices
 
-def run_phaselink(X, labels, trig_pr, params, ofile, tt_p, tt_s,
+def run_phaselink(model, X, labels, trig_pr, params, ofile, tt_p, tt_s,
                   station_index_map):
     import time
 
     # Permute pick matrix for all lags 
     print("Permuting sequence for all lags...")
     X_perm = permute_seq(X, params['t_win'], params['n_max_picks'])
-    X_perm = torch.from_numpy(X_perm).float().to(device)
+    X_perm = torch.from_numpy(X_perm).float().to(params["device"])
     print("Finished permuting sequence")
 
     # Predict association labels for all windows
     Y_pred = torch.zeros((X_perm.size(0), X_perm.size(1), 1)).float()
-    Y_pred = Y_pred.to(device)
+    Y_pred = Y_pred.to(params["device"])
     print("Predicting labels for all phases")
     for i in range(0, Y_pred.shape[0], params['batch_size']):
         i_start = i
@@ -443,7 +458,7 @@ def detect_events(X, Y, model, params):
         labels = [Y[x] for x in idx]
         trig_pr = trig_pr_full[idx]
 
-        n_cumul_dets += run_phaselink(
+        n_cumul_dets += run_phaselink(model, 
             X[idx], labels, trig_pr, params, ofile, tt_p, tt_s,
             station_index_map
         )
@@ -493,21 +508,24 @@ def read_gpd_output(params):
     return X, labels
 
 
+#----------------------------------------------- End: Define main functions -----------------------------------------------
+
+
+#----------------------------------------------- Run script -----------------------------------------------
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("phaselink_eval config_json")
+        print("Usage: python phaselink_eval.py config_json")
+        print("E.g. python phaselink_eval.py params.json")
         sys.exit()
-
     with open(sys.argv[1], "r") as f:
         params = json.load(f)
 
-    device = torch.device(params['device'])
-
-    model = StackedGRU().cuda(device)
-
-    checkpoint = torch.load(params['model_file'], map_location=device)
-    model.load_state_dict(checkpoint['model_state_dict'])
+    # Load model (independent of training machine architecture):
+    model = torch.load(params['model_file'])
     model.eval()
 
+    # Detect events:
     X, labels = read_gpd_output(params)
     detect_events(X, labels, model, params)
+
+    print("Finished.")

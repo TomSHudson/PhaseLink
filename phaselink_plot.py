@@ -132,10 +132,9 @@ def plot_seismicity(catalog, params):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("phaselink_plot.py control_file.json")
+        print("Usage: python phaselink_plot.py config_json")
+        print("E.g. python phaselink_plot.py params.json")
         sys.exit()
-
-
     with open(sys.argv[1], "r") as f:
         params = json.load(f)
 

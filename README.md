@@ -15,4 +15,9 @@ There are four scripts that should be used in the following order:
 
 More details about these codes and input file formats will be added over time. All of the scripts take a json filename as a command line argument. See the example file params.json.
 
+### Notes on the parameter file (params.json)
+
+Here are the details on some of the key parameters in the parameter file (params.json):
+
+
 Contact Zachary Ross (Caltech) with any questions.

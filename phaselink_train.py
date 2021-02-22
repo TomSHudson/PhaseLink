@@ -1,6 +1,11 @@
 #!/usr/bin/python
 #-----------------------------------------------------------------------------------------------------------------------------------------
 
+# PhaseLink: Earthquake phase association with deep learning
+# Author: Zachary E. Ross
+# Seismological Laboratory
+# California Institute of Technology
+
 # Script Description:
 # Script to train a stacked bidirectional GRU model to link phases together. This code takes the synthetic training dataset produced using p
 # haselink_dataset and trains a deep neural network to associate individual phases into events.

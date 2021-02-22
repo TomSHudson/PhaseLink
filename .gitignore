@@ -11,3 +11,5 @@ __pycache__/*
 example/.ipynb_checkpoints
 example/.ipynb_checkpoints/*
 example/phaselink_model/*
+sjfz_det_linked.nlloc
+example/sjfz_det_linked.nlloc

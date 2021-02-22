@@ -1,6 +1,11 @@
 #!/usr/bin/python
 #-----------------------------------------------------------------------------------------------------------------------------------------
 
+# PhaseLink: Earthquake phase association with deep learning
+# Author: Zachary E. Ross
+# Seismological Laboratory
+# California Institute of Technology
+
 # Script Description:
 # Script to build a training dataset for PhaseLink from a station file and 1D travel time table. The travel time tables are in the format 
 # that is output by the GrowClust code. A decoupled version of this raytracer is provided in raytracer.tar.gz, which has a python wrapper 
